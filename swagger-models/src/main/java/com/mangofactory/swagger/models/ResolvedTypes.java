@@ -6,8 +6,11 @@ import com.fasterxml.classmate.types.ResolvedObjectType;
 import com.fasterxml.classmate.types.ResolvedPrimitiveType;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.model.AllowableListValues;
 import com.wordnik.swagger.model.AllowableValues;
+import org.springframework.core.annotation.AnnotationUtils;
 import scala.collection.JavaConversions;
 
 import java.lang.reflect.Type;
@@ -63,14 +66,14 @@ public class ResolvedTypes {
     if (type.getTypeParameters().size() > 0 && type.getErasedType().getTypeParameters().length > 0) {
       return genericTypeName(type);
     }
-    return simpleTypeName(type);
+    return apiModelValue(type.getErasedType()).or(simpleTypeName(type));
   }
 
   public static String genericTypeName(ResolvedType resolvedType) {
     Class<?> erasedType = resolvedType.getErasedType();
     String simpleName = Optional
             .fromNullable(typeNameFor(erasedType))
-            .or(erasedType.getSimpleName());
+            .or(apiModelValue(erasedType).or(erasedType.getSimpleName()));
     StringBuilder sb = new StringBuilder(String.format("%s«", simpleName));
     boolean first = true;
     for (int index = 0; index < erasedType.getTypeParameters().length; index++) {
@@ -134,5 +137,13 @@ public class ResolvedTypes {
         return input.toString();
       }
     });
+  }
+
+  private static Optional<String> apiModelValue(Class<?> type) {
+    ApiModel annotation = AnnotationUtils.findAnnotation(type, ApiModel.class);
+    if (annotation != null) {
+      return Optional.fromNullable(Strings.emptyToNull(annotation.value()));
+    }
+    return Optional.absent();
   }
 }

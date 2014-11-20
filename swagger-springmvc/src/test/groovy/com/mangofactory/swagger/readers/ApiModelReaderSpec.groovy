@@ -72,9 +72,10 @@ class ApiModelReaderSpec extends Specification {
 //      println model.subTypes()
   }
 
-  def "Annotated model"() {
+  def "Annotated model properties"() {
     given:
-      RequestMappingContext context = contextWithApiDescription(dummyHandlerMethod('methodWithModelAnnotations'))
+      RequestMappingContext context = contextWithApiDescription(dummyHandlerMethod
+              ('methodWithModelPropertyAnnotations'))
       SwaggerGlobalSettings settings = new SwaggerGlobalSettings()
       def modelConfig = new SwaggerModelsConfiguration()
       def typeResolver = new TypeResolver()
@@ -105,6 +106,28 @@ class ApiModelReaderSpec extends Specification {
 
 
 
+  }
+
+  def "Annotated model"() {
+    given:
+      RequestMappingContext context = contextWithApiDescription(dummyHandlerMethod('methodWithModelAnnotations'))
+      SwaggerGlobalSettings settings = new SwaggerGlobalSettings()
+      def modelConfig = new SwaggerModelsConfiguration()
+      def typeResolver = new TypeResolver()
+      settings.alternateTypeProvider = modelConfig.alternateTypeProvider(typeResolver)
+      settings.ignorableParameterTypes = new SpringSwaggerConfig().defaultIgnorableParameterTypes()
+      context.put("swaggerGlobalSettings", settings)
+    when:
+      ApiModelReader apiModelReader = new ApiModelReader(modelProvider())
+      apiModelReader.execute(context)
+      Map<String, Object> result = context.getResult()
+
+    then:
+      Map<String, Model> models = result.get("models")
+      Model model = models['AlternateBusinessModelName']
+      model.id == 'AlternateBusinessModelName'
+      model.name() == 'AlternateBusinessModelName'
+      model.qualifiedType() == 'com.mangofactory.swagger.dummy.DummyModels$NamedBusinessModel'
   }
 
   def "Should pull models from Api Operation response class"() {

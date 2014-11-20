@@ -174,9 +174,14 @@ public class DummyClass {
    }
 
    @ResponseBody
-   public DummyModels.AnnotatedBusinessModel methodWithModelAnnotations() {
-      return null;
-   }
+   public DummyModels.AnnotatedBusinessModel methodWithModelPropertyAnnotations() {
+    return null;
+  }
+
+   @ResponseBody
+   public DummyModels.NamedBusinessModel methodWithModelAnnotations() {
+    return null;
+  }
 
    @ResponseBody
    public DummyModels.CorporationModel methodWithConcreteCorporationModel() {
